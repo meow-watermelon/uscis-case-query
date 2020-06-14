@@ -21,16 +21,13 @@ def query_case(case_number):
         query_response = s.post(uscis_q_url, data=query_form)
         if query_response.status_code == 200:
             query_response_html = lxml.html.fromstring(query_response.text)
-            query_response_xpath = query_response_html.xpath('//h1')
-            query_response_text = query_response_xpath[0].text
-            """
-            query_response_text can return 2 empty lines if no result found. it's 
-            necessary to check the return string in \w+ pattern
-            """
-            if query_response_text != None and re.match(r'\w+', query_response_text):
-                print('%s: %s' %(case_number, query_response_text))
-            else:
+            try:
+                query_response_case_status = query_response_html.xpath('//div[@class=\'rows text-center\']/h1')[0].text_content()
+                query_response_case_text = query_response_html.xpath('//div[@class=\'rows text-center\']/p')[0].text_content()
+            except:
                 print('ERROR: %s: no result returns' %(case_number))
+            else:
+                print('%s: %s\n\n%s' %(case_number, query_response_case_status, query_response_case_text))
         else:
             print('ERROR: %s: USCIS portal returns non-200 response code %d.' %(case_number, query_response.status_code))
 
